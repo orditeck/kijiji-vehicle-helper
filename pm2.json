@@ -1,0 +1,13 @@
+{
+  "apps": [
+    {
+      "name": "kijiji-parser-frontend",
+      "script": "npm",
+      "env": {
+        "PORT": "3002",
+        "NODE_ENV": "development"
+      },
+      "args": "start"
+    }
+  ]
+}

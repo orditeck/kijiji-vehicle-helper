@@ -1,0 +1,54 @@
+@import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro&display=swap");
+@import "~bootstrap/scss/bootstrap";
+
+html {
+  height: 100%;
+  font-size: 16px;
+
+  @include media-breakpoint-down(md) {
+    font-size: 14px;
+  }
+}
+
+body {
+  font-size: 1rem;
+  padding: 0;
+  color: #000;
+  font-family: "Source Sans Pro", sans-serif;
+
+  @extend .bg-light;
+}
+
+.item {
+  .item-image {
+    width: 10rem;
+    height: 6rem;
+    background-size: cover;
+    background-position: center center;
+  }
+
+  .no-break {
+    white-space: nowrap;
+  }
+
+  > table {
+    tr:first-of-type th:first-of-type {
+      width: 10rem;
+    }
+  }
+}
+
+.navbar {
+  font-size: 0.8rem;
+
+  ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    align-items: center;
+
+    li {
+      margin: 0 0.5rem;
+    }
+  }
+}
