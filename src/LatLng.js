@@ -5,22 +5,26 @@ import { usePosition } from "use-position"
 const LatLng = () => {
   const [coordinates, setCoordinates] = useGlobalState("coordinates")
   const { latitude, longitude } = usePosition(false)
+  const validLocation =
+    coordinates &&
+    "lat" in coordinates &&
+    "lng" in coordinates &&
+    coordinates.lat &&
+    coordinates.lng
+
+  console.log(coordinates)
 
   useEffect(() => {
-    setCoordinates({
-      lat: Number(latitude).toFixed(4),
-      lng: Number(longitude).toFixed(4)
-    })
+    if (latitude && longitude) {
+      setCoordinates({
+        lat: Number(latitude).toFixed(4),
+        lng: Number(longitude).toFixed(4)
+      })
+    }
   }, [latitude, longitude, setCoordinates])
 
   const renderLocation = () => {
-    if (
-      coordinates &&
-      "lat" in coordinates &&
-      "lng" in coordinates &&
-      coordinates.lat &&
-      coordinates.lng
-    ) {
+    if (validLocation) {
       return (
         <>
           {coordinates.lat}, {coordinates.lng}

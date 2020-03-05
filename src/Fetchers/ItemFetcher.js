@@ -44,13 +44,18 @@ const ItemFetcher = () => {
         if (!["fetched", "fetching"].includes(item.status)) {
           ;(async () => {
             setItemFetching(item.id)
-
-            let fetchedItem = await FetchItem(item.url)
-            setItemDetails(item.id, fetchedItem)
-            setItemDistance(item.id, calculateDistance(fetchedItem.coordinates))
-
+            setItemDetails(item.id, await FetchItem(item.url))
             setItemFetched(item.id)
           })()
+        }
+
+        if (
+          userCoordinates &&
+          item.coordinates &&
+          !item.distance &&
+          ["fetched"].includes(item.status)
+        ) {
+          setItemDistance(item.id, calculateDistance(item.coordinates))
         }
       })
   }, [items, userCoordinates])
