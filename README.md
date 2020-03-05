@@ -1,5 +1,7 @@
 ## Kijiji Vehicle Helper
 
+![image](https://i.imgur.com/KKw6FWl.png)
+
 Little React app that crawls the Kijiji's listing page you provide and extract the data to compare vehicles.
 
 Quick look on the features:
