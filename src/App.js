@@ -6,6 +6,12 @@ import PageFetcher from "./Fetchers/PageFetcher"
 import Items from "./Items"
 import LatLng from "./LatLng"
 import GlobalLoading from "./GlobalLoading"
+import axios from 'axios';
+import axiosThrottle from 'axios-request-throttle';
+import axiosRetry from 'axios-retry';
+
+axiosThrottle.use(axios, { requestsPerSecond: 3 });
+axiosRetry(axios, { retries: 3 });
 
 const App = () => (
   <div className="App">

@@ -1,41 +1,56 @@
-import axios from "axios"
-import cheerio from "cheerio"
-import { trimString } from "../Helpers"
+import axios from "axios";
+import cheerio from "cheerio";
 
-const FetchMeta = async urlToFetch => {
+const FetchMeta = async (urlToFetch) => {
   const result = await axios.get(
-    `https://api-kijiji.code.nevek.co/${urlToFetch}`
-  )
-  const $ = cheerio.load(result.data)
-  const pages = []
+    `https://api-kijiji.code.bqf.ca/${urlToFetch}`
+  );
+  const $ = cheerio.load(result.data);
 
-  const currentPage = trimString(
-    $(".bottom-bar .pagination span.selected").text()
-  )
+  const pageString = $('[data-testid="srp-results"]').text().replace(/,/g, "");
+  const startResult = Number(pageString.match(/Results\s(\d+)\s-\s\d+/)[1]);
+  const endResult = Number(pageString.match(/Results\s\d+\s-\s(\d+)/)[1]);
+  const resultsPerPage = endResult - startResult + 1;
+  const totalResults = Number(pageString.match(/of\s(\d+)/)[1]);
+  const totalPages = Math.ceil(Number(totalResults) / Number(resultsPerPage));
+  const currentPage = Number(
+    urlToFetch.match(/page-(\d+)/)
+      ? urlToFetch.match(/page-(\d+)/)[1]
+      : Math.floor((startResult - 1) / resultsPerPage) + 1
+  );
+
+  const pages = [];
 
   pages.push({
     page: Number(currentPage),
-    url: urlToFetch
-  })
+    url: urlToFetch,
+  });
 
-  $(".bottom-bar .pagination a")
-    .not("[title]")
-    .not(".rss-link")
-    .each((i, link) => {
-      const url = "https://www.kijiji.ca" + $(link).attr("href")
-      const page = Number(trimString($(link).text()))
+  Array.from({ length: totalPages }, (_, i) => {
+    const page = i + 1;
+    if (page === currentPage) {
+      return null;
+    }
 
-      if (pages.find(p => p.url === url)) {
-        return
+    const url = (() => {
+      if (urlToFetch.match(/page-(\d+)/)) {
+        return urlToFetch.replace(/page-(\d+)/, `page-${page}`);
       }
+      if (page === 1) {
+        return urlToFetch;
+      }
+      return urlToFetch.replace(/(\/[^/]+)$/, `/page-${page}$1`);
+    })();
 
-      pages.push({
-        page,
-        url
-      })
-    })
+    pages.push({
+      page,
+      url,
+    });
 
-  return pages
-}
+    return null;
+  });
 
-export default FetchMeta
+  return pages;
+};
+
+export default FetchMeta;

@@ -18,7 +18,7 @@ const FetchingStatus = () => {
   const nbItemFetched = fetchedItems.length
 
   const avgByKey = key =>
-    (fetchedItems.reduce((total, next) => total + next[key], 0) /
+    (fetchedItems.reduce((total, next) => total + Number(next[key]), 0) /
       nbItemFetched) |
     0
 

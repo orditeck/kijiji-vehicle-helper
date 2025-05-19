@@ -1,47 +1,39 @@
 import axios from "axios"
 import cheerio from "cheerio"
-import { trimString } from "../Helpers"
 
 const FetchListingPage = async urlToFetch => {
   const result = await axios.get(
-    `https://api-kijiji.code.nevek.co/${urlToFetch}`
+    `https://api-kijiji.code.bqf.ca/${urlToFetch}`
   )
   const $ = cheerio.load(result.data)
+  const json = $("script[type='application/ld+json']").html();
+  const jsonData = JSON.parse(json);
 
-  const items = {}
+  const items = {};
 
-  $(".regular-ad.search-item").each((i, el) => {
-    const id = $(el).attr("data-listing-id") || ""
-    const title = trimString($("a.title", el).text())
-    const url = "https://www.kijiji.ca" + $("a.title", el).attr("href")
-    const price = parseFloat(
-      trimString(
-        $(".price", el)
-          .text()
-          .replace(",", ".")
-      ).replace(/[^\d.-]/g, "")
-    )
-    const image =
-      $(".image img", el).attr("data-src") || $(".image img", el).attr("src")
-    const location = trimString(
-      $(".location", el)
-        .children()
-        .remove()
-        .end()
-        .text()
-    )
-
+  (jsonData.itemListElement || []).forEach(({item}) => {
+    const id = item.vehicleIdentificationNumber || item.name;
     items[id] = {
-      id,
-      title,
-      url,
-      price,
-      image,
-      location
-    }
-  })
+        id,
+        title: item.name,
+        description: item.description,
+        image: item.image,
+        url: item.url,
+        price: item.offers.price,
+        condition: (item.itemCondition || "").replace("https://schema.org/", ""),
+        brand: item.brand.name,
+        model: item.model,
+        trim: item.vehicleConfiguration,
+        year: item.vehicleModelDate,
+        color: item.color,
+        mileage: item.mileageFromOdometer.value,
+        bodyType: item.bodyType,
+        driveWheelConfiguration: (item.driveWheelConfiguration || "").replace("https://schema.org/", ""),
+        fuelType: item.vehicleEngine.fuelType,
+      }
+  });
 
-  return items
+  return items;
 }
 
 export default FetchListingPage

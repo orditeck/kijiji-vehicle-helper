@@ -3,22 +3,19 @@ import { formatKm, formatMoney } from "./Helpers"
 import { useGlobalState } from "./State"
 
 const Items = () => {
-  const [items] = useGlobalState("items")
-
-  const fetchedItems = Object.values(items).filter(
-    item => item.status === "fetched"
-  )
+  const [items] = useGlobalState("items");
+  const itemsArray = Object.values(items);
 
   const avgByKey = key =>
-    (fetchedItems.reduce((total, next) => total + next[key], 0) /
-      fetchedItems.length) |
+    (itemsArray.reduce((total, next) => total + Number(next[key]), 0) /
+      itemsArray.length) |
     0
 
   const avgYear = avgByKey("year")
   const avgKm = avgByKey("mileage")
   const avgPrice = avgByKey("price")
 
-  const itemsWithScores = fetchedItems.map(item => ({
+  const itemsWithScores = itemsArray.map(item => ({
     ...item,
     score: item.year / avgYear + item.mileage / avgKm + item.price / avgPrice
   }))
@@ -44,7 +41,7 @@ const Items = () => {
           {Object.values(itemsWithScores)
             .sort((a, b) => a.score - b.score)
             .map(item => (
-              <tr>
+              <tr key={item.id}>
                 <td>
                   <div
                     className="item-image"
@@ -72,7 +69,16 @@ const Items = () => {
                 </td>
                 <td>
                   {item.location}
-                  {item.distance ? ` (${item.distance} km)` : ""}
+                  {(() => {
+                    if(item.status === "fetching") {
+                      return <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    }
+
+                    if(item.distance) {
+                      return ` (${item.distance} km)`;
+                    }
+
+                  })()}
                 </td>
                 <td>{item.datePosted ?? ""}</td>
                 <td>{Number(item.score).toFixed(3)}</td>

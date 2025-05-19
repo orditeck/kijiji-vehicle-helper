@@ -1,49 +1,39 @@
-import axios from "axios"
-import cheerio from "cheerio"
-import { trimString, formatNumber } from "../Helpers"
+import axios from "axios";
+import cheerio from "cheerio";
 
-const FetchItem = async urlToFetch => {
+const FetchItem = async (urlToFetch) => {
   const result = await axios.get(
-    `https://api-kijiji.code.nevek.co/${urlToFetch}`
-  )
-  const $ = cheerio.load(result.data)
-
-  const attributes = $("div#AttributeList")
-
-  const getValue = name =>
-    trimString($(`dd[itemprop="${name}"]`, attributes).text())
-
-  const datePosted =
-    $('div[itemprop="datePosted"] time').attr("title") ||
-    $('div[itemprop="datePosted"] span').attr("title")
-  const brand = getValue("brand") || null
-  const model = getValue("model") || null
-  const trim = getValue("vehicleConfiguration") || null
-  const color = getValue("color") || null
-  const year = formatNumber(getValue("vehicleModelDate")) || null
-  const mileage = formatNumber(getValue("mileageFromOdometer")) || null
-  const numberOfDoors = formatNumber(getValue("numberOfDoors")) || null
-  const seatingCapacity = formatNumber(getValue("seatingCapacity")) || null
-  const [lat, lng] = [
-    $("meta[property='og:latitude']").attr("content") || null,
-    $("meta[property='og:longitude']").attr("content") || null
-  ]
+    `https://api-kijiji.code.bqf.ca/${urlToFetch}`
+  );
+  const $ = cheerio.load(result.data);
+  const json = $("script[type='application/ld+json']").html();
+  const jsonData = JSON.parse(json);
 
   return {
-    datePosted,
-    brand,
-    model,
-    trim,
-    year,
-    color,
-    mileage,
-    numberOfDoors,
-    seatingCapacity,
+    status: "fetched",
+    datePosted: jsonData.offers.validFrom,
+    description: jsonData.description,
+    bodyType: jsonData.bodyType,
+    location: jsonData.offers.availableAtOrFrom.name,
     coordinates: {
-      lat,
-      lng
-    }
-  }
-}
+      lat: jsonData.offers.availableAtOrFrom.latitude,
+      lng: jsonData.offers.availableAtOrFrom.longitude,
+    },
+    images: (() => {
+      if (Array.isArray(jsonData.image)) {
+        return jsonData.image.map((image) => ({
+          url: image.contentUrl,
+          creditText: image.creditText,
+          name: image.name,
+          description: image.description,
+        }));
+      }
+      if (typeof jsonData.image === "string") {
+        return [{ url: jsonData.image }];
+      }
+      return [];
+    })(),
+  };
+};
 
-export default FetchItem
+export default FetchItem;
